@@ -1,9 +1,9 @@
 const Papa = require('papaparse');
 const fs = require('fs');
 
-const foodData = 'src/food.csv';
-const countriesData = 'src/countries.geo.json';
-const output = 'output.geo.json';
+const foodData = 'data/food.csv';
+const countriesData = 'data/countries.geo.json';
+const output = 'data/output.geo.json';
 
 const redMeat = ['Bovine Meat', 'Fats, Animals, Raw', 'Meat', 'Meat, Other', 'Mutton & Goat Meat', 'Offals, Edible'];
 const whiteMeat = ['Pigmeat', 'Poultry Meat'];
@@ -102,7 +102,7 @@ Papa.parse(foodContent, {
 fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
   const countries = JSON.parse(data);
 
-  // Store every country in MongoDB
+  // Merge the data from ONU and the geo.json
   foodByCountries.forEach((countryData, country) => {
     const countryGeo = countries.features.find(obj => obj.properties.name === country);
 
