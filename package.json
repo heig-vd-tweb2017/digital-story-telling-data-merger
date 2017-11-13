@@ -1,18 +1,22 @@
 {
-  "name": "food-csv-parser",
+  "name": "mean-meat-server",
   "version": "1.0.0",
-  "description": "A CSV parser for the food data from ONU",
+  "description": "The Mean Meat server",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Ludovic Delafontaine",
+  "author": "Ludovic Delafontaine & Michela Zucca",
   "license": "MIT",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/heig-vd-tweb2017/digital-story-telling-server"
+  },
   "dependencies": {
     "papaparse": "^4.3.6"
   },
   "devDependencies": {
-    "eslint": "^4.10.0",
+    "eslint": "^4.11.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0"
   }

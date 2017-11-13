@@ -1,7 +1,9 @@
 const Papa = require('papaparse');
 const fs = require('fs');
 
-const input = 'food.csv';
+const foodData = 'src/food.csv';
+const countriesData = 'src/countries.geo.json';
+const output = 'output.geo.json';
 
 const redMeat = ['Bovine Meat', 'Fats, Animals, Raw', 'Meat', 'Meat, Other', 'Mutton & Goat Meat', 'Offals, Edible'];
 const whiteMeat = ['Pigmeat', 'Poultry Meat'];
@@ -12,11 +14,11 @@ const kgPerPersonPerYear = 'Food supply quantity (kg/capita/yr)';
 
 const meatCategories = [...redMeat, ...whiteMeat, ...waterMeat];
 
-const countries = new Map();
+const foodByCountries = new Map();
 
-const content = fs.readFileSync(input, { encoding: 'utf8' });
+const foodContent = fs.readFileSync(foodData, { encoding: 'utf8' });
 
-Papa.parse(content, {
+Papa.parse(foodContent, {
   header: true,
   dynamicTyping: true,
   step: (row) => {
@@ -33,8 +35,8 @@ Papa.parse(content, {
       if (countryCode <= 181) {
         let country;
 
-        if (countries.has(countryName)) {
-          country = countries.get(countryName);
+        if (foodByCountries.has(countryName)) {
+          country = foodByCountries.get(countryName);
         } else {
           country = {
             years: new Map(),
@@ -87,26 +89,37 @@ Papa.parse(content, {
         country.years.set(year, consumptionPerYear);
 
         // Save the country
-        countries.set(countryName, country);
+        foodByCountries.set(countryName, country);
       }
     }
   },
   complete() {
-    // Store every country in MongoDB
-    countries.forEach((value, key) => {
-      const yearsArray = Array.from(value.years);
-
-      const countryJson = JSON.stringify({
-        name: key,
-        years: yearsArray,
-      });
-
-      console.log(countryJson);
-
-      // Store in MongoDB
-      // TODO
-    });
-
-    console.log('All done!');
+    console.log('Food data reworked.');
   },
+});
+
+
+fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
+  const countries = JSON.parse(data);
+
+  // Store every country in MongoDB
+  foodByCountries.forEach((countryData, country) => {
+    const countryGeo = countries.features.find(obj => obj.properties.name === country);
+
+    if (countryGeo != null) {
+      countryGeo.properties.years = {};
+
+      countryData.years.forEach((yearData, year) => {
+        countryGeo.properties.years[`_${year}`] = yearData;
+      });
+    }
+  });
+
+  console.log('Countries data reworked.');
+
+  const countriesJSONGeo = JSON.stringify(countries);
+
+  fs.writeFileSync(output, countriesJSONGeo);
+
+  console.log('All data processed.');
 });
