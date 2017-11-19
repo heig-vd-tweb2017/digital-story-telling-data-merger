@@ -12,6 +12,9 @@ const waterMeat = ['Freshwater Fish', 'Fish, Seafood', 'Aquatic Animals, Other',
 const tonnes = 'Food supply quantity (tonnes)';
 const kgPerPersonPerYear = 'Food supply quantity (kg/capita/yr)';
 
+let maxTotal = 0;
+let minTotal = Number.MAX_SAFE_INTEGER;
+
 const meatCategories = [...redMeat, ...whiteMeat, ...waterMeat];
 
 const foodByCountries = new Map();
@@ -32,7 +35,7 @@ Papa.parse(foodContent, {
     // Check if the current row is some kind of meat
     if (meatCategories.includes(meatCategory)) {
       // Check if the current row is a valid country
-      if (countryCode <= 181) {
+      if (true) {
         let country;
 
         if (foodByCountries.has(countryName)) {
@@ -53,11 +56,13 @@ Papa.parse(foodContent, {
               redMeat: 0,
               whiteMeat: 0,
               waterMeat: 0,
+              total: 0,
             },
             kgPerPersonPerWeek: {
               redMeat: 0,
               whiteMeat: 0,
               waterMeat: 0,
+              total: 0,
             },
           };
         }
@@ -66,6 +71,8 @@ Papa.parse(foodContent, {
 
         // Check what kind of unit it is
         if (data.Element === tonnes) {
+          consumptionPerYear.tonnes.total += quantityPerYear;
+
           // Check what kind of meat it is
           if (redMeat.includes(meatCategory)) {
             consumptionPerYear.tonnes.redMeat += quantityPerYear;
@@ -75,6 +82,8 @@ Papa.parse(foodContent, {
             consumptionPerYear.tonnes.waterMeat += quantityPerYear;
           }
         } else if (data.Element === kgPerPersonPerYear) {
+          consumptionPerYear.kgPerPersonPerWeek.total += quantityPerYear / 52;
+
           // Check what kind of meat it is
           if (redMeat.includes(meatCategory)) {
             consumptionPerYear.kgPerPersonPerWeek.redMeat += quantityPerYear / 52;
@@ -83,6 +92,15 @@ Papa.parse(foodContent, {
           } else if (waterMeat.includes(meatCategory)) {
             consumptionPerYear.kgPerPersonPerWeek.waterMeat += quantityPerYear / 52;
           }
+        }
+
+        // Update the min max consumption of meat
+        if (consumptionPerYear.tonnes.total > maxTotal) {
+          maxTotal = consumptionPerYear.tonnes.total;
+        }
+
+        if (consumptionPerYear.tonnes.total < minTotal) {
+          minTotal = consumptionPerYear.tonnes.total;
         }
 
         // Save the year consumption for the country
@@ -98,6 +116,38 @@ Papa.parse(foodContent, {
   },
 });
 
+const countriesNotFound = new Map();
+
+countriesNotFound.set("Bahamas", "The Bahamas");
+countriesNotFound.set("Belgium-Luxembourg", "Belgium"); // Warning !
+countriesNotFound.set("Belgium-Luxembourg", "Luxembourg"); // Warning !
+countriesNotFound.set("Bolivia (Plurinational State of)", "Bolivia");
+countriesNotFound.set("Brunei Darussalam", "Brunei");
+countriesNotFound.set("China, Hong Kong SAR", "China"); // Warning !
+countriesNotFound.set("China, Macao SAR", "China"); // Warning !
+countriesNotFound.set("China, mainland", "China"); // Warning !
+countriesNotFound.set("China, Taiwan Province of", "Taiwan"); // Warning !
+countriesNotFound.set("Congo", "Democratic Republic of the Congo"); // Warning !
+countriesNotFound.set("Congo", "Republic of the Congo"); // Warning !
+countriesNotFound.set("C�te d'Ivoire", "Ivory Coast");
+countriesNotFound.set("Czechia", "Czech Republic");
+countriesNotFound.set("Czechoslovakia", "Slovakia"); // Warning !
+countriesNotFound.set("Democratic People's Republic of Korea", "South Korea"); // Warning !
+countriesNotFound.set("Dominica", "Dominican Republic");
+countriesNotFound.set("Ethiopia PDR", "Ethiopia");
+countriesNotFound.set("Guinea-Bissau", "Guinea Bissau");
+countriesNotFound.set("Iran (Islamic Republic of)", "Iran");
+countriesNotFound.set("Lao People's Democratic Republic", "Laos");
+countriesNotFound.set("Republic of Korea", "South Korea"); // Warning !
+countriesNotFound.set("Republic of Moldova", "Moldova");
+countriesNotFound.set("Russian Federation", "Russia");
+countriesNotFound.set("Serbia", "Republic of Serbia");
+countriesNotFound.set("Sudan (former)", "Sudan");
+countriesNotFound.set("The former Yugoslav Republic of Macedonia", "Macedonia");
+countriesNotFound.set("Timor-Leste", "East Timor"); // Warning !
+countriesNotFound.set("USSR", "Russia");
+countriesNotFound.set("Venezuela (Bolivarian Republic of)", "Venezuela"); // Warning !
+countriesNotFound.set("Viet Nam", "Vietnam");
 
 fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
   const countries = JSON.parse(data);
@@ -112,6 +162,8 @@ fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
       countryData.years.forEach((yearData, year) => {
         countryGeo.properties.years[`_${year}`] = yearData;
       });
+    } else {
+      console.log(country);
     }
   });
 
@@ -122,4 +174,6 @@ fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
   fs.writeFileSync(output, countriesJSONGeo);
 
   console.log('All data processed.');
+  console.log(`Min total: ${minTotal}`);
+  console.log(`Max total: ${maxTotal}`);
 });
