@@ -12,8 +12,10 @@ const waterMeat = ['Freshwater Fish', 'Fish, Seafood', 'Aquatic Animals, Other',
 const tonnes = 'Food supply quantity (tonnes)';
 const kgPerPersonPerYear = 'Food supply quantity (kg/capita/yr)';
 
-let maxTotal = 0;
-let minTotal = Number.MAX_SAFE_INTEGER;
+let maxKgPerPersonPerWeekTotal = 0;
+let minKgPerPersonPerWeekTotal = Number.MAX_SAFE_INTEGER;
+let maxTonnesPerYearTotal = 0;
+let minTonnesPerYearTotal = Number.MAX_SAFE_INTEGER;
 
 const meatCategories = [...redMeat, ...whiteMeat, ...waterMeat];
 
@@ -32,10 +34,11 @@ Papa.parse(foodContent, {
     const countryName = data.Area;
     const year = data.Year;
 
-    // Check if the current row is some kind of meat
-    if (meatCategories.includes(meatCategory)) {
-      // Check if the current row is a valid country
-      if (true) {
+    // Only takes countries, not summary of multiple countries
+    if (countryCode < 5000) {
+      // Check if the current row is some kind of meat
+      if (meatCategories.includes(meatCategory)) {
+        
         let country;
 
         if (foodByCountries.has(countryName)) {
@@ -95,12 +98,20 @@ Papa.parse(foodContent, {
         }
 
         // Update the min max consumption of meat
-        if (consumptionPerYear.tonnes.total > maxTotal) {
-          maxTotal = consumptionPerYear.tonnes.total;
+        if (consumptionPerYear.kgPerPersonPerWeek.total > maxKgPerPersonPerWeekTotal) {
+          maxKgPerPersonPerWeekTotal = consumptionPerYear.kgPerPersonPerWeek.total;
         }
 
-        if (consumptionPerYear.tonnes.total < minTotal) {
-          minTotal = consumptionPerYear.tonnes.total;
+        if (consumptionPerYear.kgPerPersonPerWeek.total < minKgPerPersonPerWeekTotal) {
+          minKgPerPersonPerWeekTotal = consumptionPerYear.kgPerPersonPerWeek.total;
+        }
+
+        if (consumptionPerYear.tonnes.total > maxTonnesPerYearTotal) {
+          maxTonnesPerYearTotal = consumptionPerYear.tonnes.total;
+        }
+
+        if (consumptionPerYear.tonnes.total < minTonnesPerYearTotal) {
+          minTonnesPerYearTotal = consumptionPerYear.tonnes.total;
         }
 
         // Save the year consumption for the country
@@ -119,16 +130,16 @@ Papa.parse(foodContent, {
 const countriesNotFound = new Map();
 
 countriesNotFound.set("Bahamas", "The Bahamas");
-countriesNotFound.set("Belgium-Luxembourg", "Belgium"); // Warning !
-countriesNotFound.set("Belgium-Luxembourg", "Luxembourg"); // Warning !
+//countriesNotFound.set("Belgium-Luxembourg", "Belgium"); // Warning !
+//countriesNotFound.set("Belgium-Luxembourg", "Luxembourg"); // Warning !
 countriesNotFound.set("Bolivia (Plurinational State of)", "Bolivia");
 countriesNotFound.set("Brunei Darussalam", "Brunei");
-countriesNotFound.set("China, Hong Kong SAR", "China"); // Warning !
-countriesNotFound.set("China, Macao SAR", "China"); // Warning !
-countriesNotFound.set("China, mainland", "China"); // Warning !
+//countriesNotFound.set("China, Hong Kong SAR", "China"); // Warning !
+//countriesNotFound.set("China, Macao SAR", "China"); // Warning !
+//countriesNotFound.set("China, mainland", "China"); // Warning !
 countriesNotFound.set("China, Taiwan Province of", "Taiwan"); // Warning !
-countriesNotFound.set("Congo", "Democratic Republic of the Congo"); // Warning !
-countriesNotFound.set("Congo", "Republic of the Congo"); // Warning !
+//countriesNotFound.set("Congo", "Democratic Republic of the Congo"); // Warning !
+//countriesNotFound.set("Congo", "Republic of the Congo"); // Warning !
 countriesNotFound.set("C�te d'Ivoire", "Ivory Coast");
 countriesNotFound.set("Czechia", "Czech Republic");
 countriesNotFound.set("Czechoslovakia", "Slovakia"); // Warning !
@@ -153,17 +164,30 @@ fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
   const countries = JSON.parse(data);
 
   // Merge the data from ONU and the geo.json
-  foodByCountries.forEach((countryData, country) => {
-    const countryGeo = countries.features.find(obj => obj.properties.name === country);
+  foodByCountries.forEach((countryData, countryName) => {
+
+    // Change the country name to the corresponding name if not found
+    if (countriesNotFound.has(countryName)) {
+      const newCountryName = countriesNotFound.get(countryName);
+
+      console.log(`Changing '${countryName}' to '${newCountryName}'.`);
+
+      countryName = newCountryName;
+    }
+
+    const countryGeo = countries.features.find(obj => obj.properties.name === countryName);
 
     if (countryGeo != null) {
+
+      if (countryGeo.properties.years != null) {
+        console.log(`  '${countryGeo.properties.name}' has already years data. Not doing anything.`);
+      }
+
       countryGeo.properties.years = {};
 
       countryData.years.forEach((yearData, year) => {
         countryGeo.properties.years[`_${year}`] = yearData;
       });
-    } else {
-      console.log(country);
     }
   });
 
@@ -174,6 +198,8 @@ fs.readFile(countriesData, { encoding: 'utf8' }, (err, data) => {
   fs.writeFileSync(output, countriesJSONGeo);
 
   console.log('All data processed.');
-  console.log(`Min total: ${minTotal}`);
-  console.log(`Max total: ${maxTotal}`);
+  console.log(`Min kg/person/week total: ${minKgPerPersonPerWeekTotal}`);
+  console.log(`Max kg/person/week total: ${maxKgPerPersonPerWeekTotal}`);
+  console.log(`Min tonnes/year total: ${minTonnesPerYearTotal}`);
+  console.log(`Max tonnes/year total: ${maxTonnesPerYearTotal}`);
 });
