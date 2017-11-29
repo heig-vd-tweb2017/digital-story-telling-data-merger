@@ -25,6 +25,7 @@ For this project, we used several librairies and technologies.
 * [Mapbox](https://www.mapbox.com/), combined with Leaflet to display nice tiles on the map
 * [Our own data merger](https://github.com/heig-vd-tweb2017/digital-story-telling-data-merger) to populate the map with our custom datas.
 * [Data-Driven Documents (D3)](https://d3js.org/) to create the interactive images with SVG elements
+* [MathJax](https://www.mathjax.org) to display equations properly
 * [SVGOMG](https://jakearchibald.github.io/svgomg/) to optimize our SVGs so they are normalized and way more smaller (+90% smaller !)
 
 ### Data merger side
