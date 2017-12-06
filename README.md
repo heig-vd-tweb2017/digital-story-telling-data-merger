@@ -39,7 +39,7 @@ For this project, we used several librairies and technologies.
 You can test the entire application [here](https://heig-vd-tweb2017.github.io/digital-story-telling-client/). Feel free to test it !
 
 ## Client's aspects
-For data merger's aspects, we encourage you to visit the associated repository [here](https://github.com/heig-vd-tweb2017/digital-story-telling-client).
+For client's aspects, we encourage you to visit the associated repository [here](https://github.com/heig-vd-tweb2017/digital-story-telling-client).
 
 ## Data merger's aspects
 The data merger uses two datasets and create a new one with all the properties we need for our project.

@@ -38,7 +38,6 @@ Papa.parse(foodContent, {
     if (countryCode < 5000) {
       // Check if the current row is some kind of meat
       if (meatCategories.includes(meatCategory)) {
-        
         let country;
 
         if (foodByCountries.has(countryName)) {
